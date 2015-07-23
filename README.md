@@ -6,7 +6,9 @@ Allows you to move categories to custom post types and/or taxonomies.
 Usage Instructions
 ===========
 
-Coming Soon
+Coming Soon...
+
+Tools > Cat 2 Post
 
 Changelog
 ===========
@@ -14,6 +16,10 @@ Changelog
 ### 1.0.2
 
 	Added to git
+	
+	Changed submit button to 'Run Script'
+	
+	Converted to class Cat2PostTypeTax
 
 ### 1.0.1
 
