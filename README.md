@@ -17,10 +17,13 @@ Changelog
 
 	Added to git
 	Added bootstrap for admin page layout
+	Added an admin debug feature (alpha testing)
 	
 	Changed submit button to 'Run Script'
 	
 	Converted to class Cat2PostTypeTax
+	
+	Reworked the admin messages system/functionality
 
 ### 1.0.1
 
