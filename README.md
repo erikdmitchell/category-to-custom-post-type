@@ -16,6 +16,7 @@ Changelog
 ### 1.0.2
 
 	Added to git
+	Added bootstrap for admin page layout
 	
 	Changed submit button to 'Run Script'
 	
