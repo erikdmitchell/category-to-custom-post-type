@@ -13,11 +13,17 @@ Tools > Cat 2 Post
 Changelog
 ===========
 
+### 1.0.3
+
+	Added a Match Custom Fields function (custom fields to metabox).
+	Removed taxonomy functions for now. There are some issues that need to be worked out.
+	
+	Primary goal currently is to map a post category to CPT.
+
 ### 1.0.2
 
 	Added to git
 	Added bootstrap for admin page layout
-	Added an admin debug feature (alpha testing)
 	
 	Changed submit button to 'Run Script'
 	

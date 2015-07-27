@@ -2,7 +2,7 @@
 /*
 Plugin Name: Category to Custom Post Type
 Description: Allows you to move categories to custom post types and/or taxonomies.
-Version: 1.0.3
+Version: 1.0.2
 Author: Erik Mitchell
 Author URI: http://www.millerdesignworks.com
 License: GPL2
@@ -97,11 +97,24 @@ class Cat2PostTypeTax {
 					$html.='</select>';
 				$html.='</div>';
 			$html.='</div><!-- .row -->';
+/*
+			$html.='<div class="row custom-taxonomy">';
+				$html.='<div class="col-sm-2"><label for="tax">Custom Taxonomy</label></div>';
+				$html.='<div class="col-sm-10">';
+					$html.='<select name="tax" id="tax" class="postform">';
+						$html.='<option value="0">Select Taxonomy</option>';
+						foreach ($tax as $t) :
+							$html.='<option value="'.$t.'">'.$t.'</option>';
+						endforeach;
+					$html.='</select>';
+				$html.='</div>';
+			$html.='</div><!-- .row -->';
+*/
 
 			$html.='<div class="row match-custom-fields">';
 				$html.='<div class="col-sm-2"><label for="post">Match Custom Fields</label></div>';
 				$html.='<div class="col-sm-10">';
-					$html.='<input type="checkbox" id="match-custom-fields" name="match_custom_fields" value="1" /> Match custom fields to new post type metabox';
+					$html.='<input type="checkbox" id="match-custom-fields" name="match_custom_fields" value="1" /> Match custom fields to new post type';
 				$html.='</div>';
 			$html.='</div><!-- .row -->';
 
@@ -117,6 +130,33 @@ class Cat2PostTypeTax {
 				$html.='</div><!-- .metabox-fields -->';
 			$html.='</div><!-- .fields-match -->';
 
+/*
+			$html.='<div class="row">';
+				$html.='<div class="col-sm-2"><label for="new_cat_parent">New Category Parent (optional)</label></div>';
+				// create various dropdowns for each taxonomy, jQuery will handle the displaying of each //
+				foreach ($tax as $t) :
+					$wp_new_dd_args=array(
+						'name' => 'new_cat_parent',
+						'hide_empty' => 0,
+						'hierarchical' => 1,
+						'taxonomy' => $t,
+						'show_option_none'=>'Select Category',
+					);
+					$html.='<div id="'.$t.'" class="new-cat-dd" style="display:none">';
+						$html.=wp_dropdown_categories($wp_new_dd_args);
+					$html.='</div>';
+				endforeach;
+			$html.='</div><!-- .row -->';
+*/
+/*
+			$html.='<div class="row move-children">';
+				$html.='<div class="col-sm-2"><label for="move-children">Move Children</label></div>';
+				$html.='<div class="col-sm-10">';
+					$html.='<input type="radio" name="move-children" value="y" />&nbsp;Yes&nbsp;';
+					$html.='<input type="radio" name="move-children" value="n" checked="checked" />&nbsp;No';
+				$html.='</div>';
+			$html.='</div><!-- .row -->';
+*/
 			$html.='<div class="row">';
 				$html.='<div class="col-sm-2"><label for="delete-old">Delete Category</label></div>';
 				$html.='<div class="col-sm-10">';
@@ -166,6 +206,21 @@ class Cat2PostTypeTax {
 		if ($match_custom_fields)
 			$meta_fields_map=$this->match_custom_fields($_POST['fields_match']);
 
+		// set parent to our selected one (if selected) ----- TAXONOMY
+/*
+		if (isset($new_cat_parent) && $new_cat_parent!=-1)
+			$parent=$new_cat_parent;
+
+		$new_cat=array(
+			'cat_name' => $main_cat->name,
+			'category_description' => $main_cat->description,
+			'category_nicename' => $post_type."-".$main_cat->slug,
+			'category_parent' => $parent,
+			'taxonomy' => $tax,
+		);
+		$new_cat_id=wp_insert_category($new_cat);
+*/
+
 		// update posts to custom post type //
 		$args=array(
 			'posts_per_page' => -1,
@@ -192,6 +247,28 @@ class Cat2PostTypeTax {
 			if ($update_posts)
 				$posts_count++;
 		endforeach;
+/*
+		// update term taxonomies //
+		$tt_id=$wpdb->get_row("SELECT term_taxonomy_id,count FROM $wpdb->term_taxonomy WHERE term_id=".$_POST["cat"]."");
+		$new_tt_id=$wpdb->get_row("SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=$new_cat_id");
+
+		$arr=array('count'=>$tt_id->count);
+		$table=$wpdb->term_taxonomy;
+		$update_count=$wpdb->update($table,$arr,array('term_id'=>$new_cat_id));
+
+		if (isset($new_tt_id->term_taxonomy_id))
+			$arr=array('term_taxonomy_id'=>$new_tt_id->term_taxonomy_id);
+
+		$table=$wpdb->term_relationships;
+		$update_tax=$wpdb->update($table,$arr,array('term_taxonomy_id'=>$tt_id->term_taxonomy_id));
+
+		$messages['success'][]='Category moved.';
+if ($_POST["move-children"]=="y") {
+		// if the children button is selected, update child taxonomies //
+		$cat(post)
+		$_POST["delete-old"]=="y"
+$messages['success'][]='Children moved.';
+*/
 
 		$messages['updated'][]='Category moved. '.$posts_count.' posts were created in '.$custom_post_type.'.';
 
@@ -223,8 +300,47 @@ class Cat2PostTypeTax {
 			return false;
 
 		foreach ($fields_map as $old_key => $new_key) :
-			$meta_value=get_post_meta($post_id,$old_key,true); // get custom field value
-			update_post_meta($post_id,$new_key,$meta_value); // update meta
+			$meta_value=get_post_meta($post_id,$old_key,true);
+			// update meta
+		endforeach;
+	}
+
+	protected function update_child_taxonomies($taxonomy=false,$parent=false,$delete=false) {
+		if (!$parent || !$taxonomy)
+			return false;
+
+		$child_args=array(
+			'child_of' => $parent,
+			'hide_empty' => false,
+		);
+		$categories=get_categories($child_args);
+
+		foreach ($categories as $cat) :
+			$new_sub_cat=array(
+				'cat_name' => $cat->name,
+				'category_description' => $cat->description,
+				'category_nicename' => $parent."-".$cat->slug,
+				'category_parent' => $new_cat_id,
+				'taxonomy' => $taxonomy,
+			);
+
+			$new_sub_cat_id = wp_insert_category($new_sub_cat);
+
+			// update term taxonomies //
+			$tt_id=$wpdb->get_row("SELECT term_taxonomy_id,count FROM $wpdb->term_taxonomy WHERE term_id=".$cat->term_id."");
+			$new_tt_id=$wpdb->get_row("SELECT term_taxonomy_id FROM $wpdb->term_taxonomy WHERE term_id=$new_sub_cat_id");
+
+			$arr=array('count'=>$tt_id->count);
+			$table=$wpdb->term_taxonomy;
+			$update_count=$wpdb->update($table,$arr,array('term_id'=>$new_sub_cat_id));
+
+			$arr=array('term_taxonomy_id'=>$new_tt_id->term_taxonomy_id);
+			$table=$wpdb->term_relationships;
+			$update_tax=$wpdb->update($table,$arr,array('term_taxonomy_id'=>$tt_id->term_taxonomy_id));
+
+			// delete old category //
+			if ($delete)
+				wp_delete_category($cat->cat_ID);
 		endforeach;
 	}
 
