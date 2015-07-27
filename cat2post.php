@@ -193,6 +193,8 @@ class Cat2PostTypeTax {
 				$posts_count++;
 		endforeach;
 
+		do_action('c2p_after_posts_moved',$posts);
+
 		$messages['updated'][]='Category moved. '.$posts_count.' posts were created in '.$custom_post_type.'.';
 
 		// delete category //

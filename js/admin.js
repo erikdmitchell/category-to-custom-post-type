@@ -48,7 +48,7 @@ jQuery(document).ready(function($) {
 	/**
 	 * display metabox fields for post type
 	 */
-	$('.cat2post-wrapper #post').change(function() {
+	$('.cat2post-wrapper #custom_post_type').change(function() {
 		var $metaboxFields=$('#metabox-fields');
 		var post_type=$(this).val();
 		var data={
