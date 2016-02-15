@@ -1,14 +1,16 @@
 <?php
 /*
 Plugin Name: Category to Custom Post Type
+Plugin URI:
 Description: Allows you to move categories to custom post types and/or taxonomies.
-Version: 1.0.3
+Version: 0.1.3
 Author: Erik Mitchell
 Author URI: http://www.millerdesignworks.com
 License: GPL2
+Text Domain: ctpt
 */
 
-class Cat2PostTypeTax {
+class Cat2PostType {
 
 	public function __construct() {
 		add_action('admin_menu',array($this,'menu_page'));
@@ -23,14 +25,13 @@ class Cat2PostTypeTax {
 			return false;
 
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('c2p-admin-script',plugins_url('js/admin.js',__File__),array('jquery'),'0.5');
+		wp_enqueue_script('ctpt-admin-script',plugins_url('js/admin.js',__File__),array('jquery'),'0.5');
 
-		wp_enqueue_style('c2p-admin-style',plugins_url('css/admin.css', __FILE__));
-		wp_enqueue_style('c2p-bootstrap',plugins_url('css/bootstrap.css', __FILE__),array(),'3.3.5');
+		wp_enqueue_style('ctpt-admin-style',plugins_url('css/admin.css', __FILE__));
 	}
 
 	public function menu_page() {
-		add_management_page('Cat 2 Post','Cat 2 Post','manage_options','cat2posttypetax-options',array($this,'admin_page'));
+		add_management_page('Cat 2 Post Type','Cat 2 Post Type','manage_options','cat2posttype',array($this,'admin_page'));
 	}
 
 	public function admin_page() {
@@ -80,58 +81,59 @@ class Cat2PostTypeTax {
 		);
 		$post_output='objects';
 		$post_types=get_post_types($post_args,$post_output);
+		?>
 
-		$html.='<form id="update-form" class="" name="update-form" action="" method="post">';
-			$html.='<div class="row">';
-				$html.='<div class="col-sm-2"><label for="cat">Category</label></div>';
-				$html.='<div class="col-sm-10">'.wp_dropdown_categories($wp_dd_args).'</div>';
-			$html.='</div><!-- .row -->';
-			$html.='<div class="row">';
-				$html.='<div class="col-sm-2"><label for="custom_post_type">Custom Post Type</label></div>';
-				$html.='<div class="col-sm-10">';
-					$html.='<select name="custom_post_type" id="custom_post_type" class="postform">';
-						$html.='<option value="0">Select Post Type</option>';
+		<form id="update-form" class="" name="update-form" action="" method="post">
+			<div class="row">
+				<div class="col-sm-2"><label for="cat">Category</label></div>
+				<div class="col-sm-10">'.wp_dropdown_categories($wp_dd_args).'</div>
+			</div><!-- .row -->
+			<div class="row">
+				<div class="col-sm-2"><label for="custom_post_type">Custom Post Type</label></div>
+				<div class="col-sm-10">
+					<select name="custom_post_type" id="custom_post_type" class="postform">
+						<option value="0">Select Post Type</option>
 						foreach ($post_types as $type) :
-							$html.='<option value="'.$type->name.'">'.$type->label.'</option>';
+							<option value="'.$type->name.'">'.$type->label.'</option>
 						endforeach;
-					$html.='</select>';
-				$html.='</div>';
-			$html.='</div><!-- .row -->';
+					</select>
+				</div>
+			</div><!-- .row -->
 
-			$html.='<div class="row match-custom-fields">';
-				$html.='<div class="col-sm-2"><label for="post">Match Custom Fields</label></div>';
-				$html.='<div class="col-sm-10">';
-					$html.='<input type="checkbox" id="match-custom-fields" name="match_custom_fields" value="1" /> Match custom fields to new post type metabox';
-				$html.='</div>';
-			$html.='</div><!-- .row -->';
+			<div class="row match-custom-fields">
+				<div class="col-sm-2"><label for="post">Match Custom Fields</label></div>
+				<div class="col-sm-10">
+					<input type="checkbox" id="match-custom-fields" name="match_custom_fields" value="1" /> Match custom fields to new post type metabox
+				</div>
+			</div><!-- .row -->
 
-			$html.='<div class="row fields-match">';
-				$html.='<div class="custom-fields col-sm-3">';
-					$html.='<label for="custom-fields">Custom Fields</label>';
-					$html.='<div id="custom-fields" name="custom_fields"></div><!-- #custom-fields -->';
-				$html.='</div><!-- .custom-fields -->';
+			<div class="row fields-match">
+				<div class="custom-fields col-sm-3">
+					<label for="custom-fields">Custom Fields</label>
+					<div id="custom-fields" name="custom_fields"></div><!-- #custom-fields -->
+				</div><!-- .custom-fields -->
 
-				$html.='<div class="metabox-fields col-sm-3">';
-					$html.='<label for="metabox-fields">Metabox Fields</label>';
-					$html.='<div id="metabox-fields" name="metabox_fields"></div><!-- #metabox-fields -->';
-				$html.='</div><!-- .metabox-fields -->';
-			$html.='</div><!-- .fields-match -->';
+				<div class="metabox-fields col-sm-3">
+					<label for="metabox-fields">Metabox Fields</label>
+					<div id="metabox-fields" name="metabox_fields"></div><!-- #metabox-fields -->
+				</div><!-- .metabox-fields -->
+			</div><!-- .fields-match -->
 
-			$html.='<div class="row">';
-				$html.='<div class="col-sm-2"><label for="delete-old">Delete Category</label></div>';
-				$html.='<div class="col-sm-10">';
-					$html.='<input type="radio" name="delete_old" value="1" />&nbsp;Yes&nbsp;';
-					$html.='<input type="radio" name="delete_old" value="0" checked="checked" />&nbsp;No';
-				$html.='</div>';
-			$html.='</div>';
-			$html.='<p class="submit">';
-				$html.='<input type="submit" name="submit" id="submit" class="button button-primary" value="Run Script">';
-			$html.='</p>';
+			<div class="row">
+				<div class="col-sm-2"><label for="delete-old">Delete Category</label></div>
+				<div class="col-sm-10">
+					<input type="radio" name="delete_old" value="1" />&nbsp;Yes&nbsp;
+					<input type="radio" name="delete_old" value="0" checked="checked" />&nbsp;No
+				</div>
+			</div>
+			<p class="submit">
+				<input type="submit" name="submit" id="submit" class="button button-primary" value="Run Script">
+			</p>
 
-			$html.='<input type="hidden" name="c2p_run" value="1" />';
-		$html.='</form>';
+			<input type="hidden" name="c2p_run" value="1" />
+		</form>
 
-		return $html;
+		<?php
 	}
 
 	protected function proccess_category() {
@@ -298,5 +300,5 @@ class Cat2PostTypeTax {
 
 }
 
-new Cat2PostTypeTax();
+new Cat2PostType();
 ?>
