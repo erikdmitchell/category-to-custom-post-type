@@ -2,8 +2,8 @@
 /*
 Plugin Name: Category to Custom Post Type
 Plugin URI:
-Description: Allows you to move categories to custom post types and/or taxonomies.
-Version: 0.1.3
+Description: Allows you to move categories to custom post types.
+Version: 0.1.4
 Author: Erik Mitchell
 Author URI: http://www.millerdesignworks.com
 License: GPL2
@@ -12,57 +12,37 @@ Text Domain: ctpt
 
 class Cat2PostType {
 
+	/**
+	 * __construct function.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	public function __construct() {
 		add_action('admin_menu',array($this,'menu_page'));
-		add_action('admin_enqueue_scripts',array($this,'admin_scripts_styles'));
-
-		add_action('wp_ajax_get_custom_fields_in_category',array($this,'ajax_get_custom_fields'));
-		add_action('wp_ajax_get_metabox_fields_in_post_type',array($this,'ajax_get_meta_boxes'));
 	}
 
-	public function admin_scripts_styles($hook) {
-		if ($hook!='tools_page_cat2posttypetax-options')
-			return false;
-
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('ctpt-admin-script',plugins_url('js/admin.js',__File__),array('jquery'),'0.5');
-
-		wp_enqueue_style('ctpt-admin-style',plugins_url('css/admin.css', __FILE__));
-	}
-
+	/**
+	 * menu_page function.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	public function menu_page() {
 		add_management_page('Cat 2 Post Type','Cat 2 Post Type','manage_options','cat2posttype',array($this,'admin_page'));
 	}
 
+	/**
+	 * admin_page function.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	public function admin_page() {
-		$html=null;
-		$message=null;
-
-		$html.='<div class="cat2post-wrapper container">';
-			$html.='<h1>Category 2 Post</h1>';
-
-			if (isset($_POST['c2p_run']) && $_POST['c2p_run']) {
-				$messages=$this->proccess_category();
-
-				foreach ($messages as $type => $msgs) :
-					if (count($msgs)) :
-						foreach ($msgs as $message) :
-							$html.='<div class="'.$type.'"><p>'.$message.'</p></div>';
-						endforeach;
-					endif;
-				endforeach;
-			}
-
-			$html.=$this->get_c2p_form();
-		$html.='</div>';
-
-		echo $html;
-	}
-
-	protected function get_c2p_form() {
 		global $wpdb;
 
 		$html=null;
+		$message=null;
 		$args=array(
 			'public'   => true,
 			'_builtin' => false
@@ -81,61 +61,64 @@ class Cat2PostType {
 		);
 		$post_output='objects';
 		$post_types=get_post_types($post_args,$post_output);
+
+		$messages=$this->proccess_category();
 		?>
 
-		<form id="update-form" class="" name="update-form" action="" method="post">
-			<div class="row">
-				<div class="col-sm-2"><label for="cat">Category</label></div>
-				<div class="col-sm-10">'.wp_dropdown_categories($wp_dd_args).'</div>
-			</div><!-- .row -->
-			<div class="row">
-				<div class="col-sm-2"><label for="custom_post_type">Custom Post Type</label></div>
-				<div class="col-sm-10">
-					<select name="custom_post_type" id="custom_post_type" class="postform">
-						<option value="0">Select Post Type</option>
-						foreach ($post_types as $type) :
-							<option value="'.$type->name.'">'.$type->label.'</option>
-						endforeach;
-					</select>
-				</div>
-			</div><!-- .row -->
+		<div class="wrap">
+			<h1>Category 2 Post Type</h1>
 
-			<div class="row match-custom-fields">
-				<div class="col-sm-2"><label for="post">Match Custom Fields</label></div>
-				<div class="col-sm-10">
-					<input type="checkbox" id="match-custom-fields" name="match_custom_fields" value="1" /> Match custom fields to new post type metabox
-				</div>
-			</div><!-- .row -->
+			<?php $this->output_admin_messages($messages); ?>
 
-			<div class="row fields-match">
-				<div class="custom-fields col-sm-3">
-					<label for="custom-fields">Custom Fields</label>
-					<div id="custom-fields" name="custom_fields"></div><!-- #custom-fields -->
-				</div><!-- .custom-fields -->
+			<form id="update-form" class="" name="update-form" action="" method="post">
+				<input type="hidden" name="c2p_run" value="1" />
+				<?php wp_nonce_field('run_script','cat_2_post_type'); ?>
 
-				<div class="metabox-fields col-sm-3">
-					<label for="metabox-fields">Metabox Fields</label>
-					<div id="metabox-fields" name="metabox_fields"></div><!-- #metabox-fields -->
-				</div><!-- .metabox-fields -->
-			</div><!-- .fields-match -->
+				<table class="form-table">
+					<tbody>
+						<tr>
+							<th scope="row"><label for="cat">Category</label></th>
+							<td>
+								<?php echo wp_dropdown_categories($wp_dd_args); ?>
+							</td>
+						</tr>
 
-			<div class="row">
-				<div class="col-sm-2"><label for="delete-old">Delete Category</label></div>
-				<div class="col-sm-10">
-					<input type="radio" name="delete_old" value="1" />&nbsp;Yes&nbsp;
-					<input type="radio" name="delete_old" value="0" checked="checked" />&nbsp;No
-				</div>
-			</div>
-			<p class="submit">
-				<input type="submit" name="submit" id="submit" class="button button-primary" value="Run Script">
-			</p>
+						<tr>
+							<th scope="row"><label for="custom_post_type">Custom Post Type</label></th>
+							<td>
+								<select name="custom_post_type" id="custom_post_type" class="postform">
+									<option value="0">Select Post Type</option>
+									<?php foreach ($post_types as $type) : ?>
+										<option value="<?php echo $type->name; ?>"><?php echo $type->label; ?></option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+						</tr>
 
-			<input type="hidden" name="c2p_run" value="1" />
-		</form>
+						<tr>
+							<th scope="row"><label for="delete_old">Delete Category</label></th>
+							<td>
+								<label title="yes"><input type="radio" name="delete_old" value="1" />Yes</label><br />
+								<label title="no"><input type="radio" name="delete_old" value="0" checked="checked" />No</label>
+							</td>
+						</tr>
 
+					</tbody>
+				</table>
+
+				<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+			</form>
+
+		</div>
 		<?php
 	}
 
+	/**
+	 * proccess_category function.
+	 *
+	 * @access protected
+	 * @return void
+	 */
 	protected function proccess_category() {
 		global $wpdb,$post;
 
@@ -149,6 +132,10 @@ class Cat2PostType {
 		$posts_count=0;
 
 		extract($_POST);
+
+		// check nonce //
+		if (!isset($_POST['cat_2_post_type']) || !wp_verify_nonce($_POST['cat_2_post_type'],'run_script'))
+			return false;
 
 		// check category //
 		if ($cat==-1) :
@@ -164,10 +151,6 @@ class Cat2PostType {
 
 		$main_cat=get_term_by('id',$cat,'category'); // get primary category id
 
-		// setup a relational array for moving custom fields to metaboxes //
-		if ($match_custom_fields)
-			$meta_fields_map=$this->match_custom_fields($_POST['fields_match']);
-
 		// update posts to custom post type //
 		$args=array(
 			'posts_per_page' => -1,
@@ -182,12 +165,9 @@ class Cat2PostType {
 			return $messages;
 		endif;
 
+		// update our posts //
 		foreach ($posts as $post) :
 			setup_postdata($post);
-
-			// map custom fields //
-			if ($meta_fields_map)
-				$this->run_post_meta_migration($post->ID,$meta_fields_map);
 
 			$update_posts=$wpdb->update($wpdb->posts,array('post_type'=>$custom_post_type),array('id'=>$post->ID)); // update in db
 
@@ -208,94 +188,24 @@ class Cat2PostType {
 		return $messages;
 	}
 
-	protected function match_custom_fields($data=array(),$old_key='custom_field',$new_key='metabox_field') {
-		if (empty($data) || !is_array($data))
+	/**
+	 * output_admin_messages function.
+	 *
+	 * @access public
+	 * @param mixed $messages (default: aray())
+	 * @return void
+	 */
+	public function output_admin_messages($messages=array()) {
+		if (empty($messages))
 			return false;
 
-		$meta_setup=array();
-		foreach ($data as $field) :
-			if ($field[$new_key]) :
-				$meta_setup[$field[$old_key]]=$field[$new_key];
+		foreach ($messages as $type => $msgs) :
+			if (count($msgs)) :
+				foreach ($msgs as $message) :
+					echo '<div class="'.$type.'"><p>'.$message.'</p></div>';
+				endforeach;
 			endif;
 		endforeach;
-
-		return $meta_setup;
-	}
-
-	protected function run_post_meta_migration($post_id=false,$fields_map=array()) {
-		if (!$post_id || !$fields_map)
-			return false;
-
-		foreach ($fields_map as $old_key => $new_key) :
-			$meta_value=get_post_meta($post_id,$old_key,true); // get custom field value
-			update_post_meta($post_id,$new_key,$meta_value); // update meta
-		endforeach;
-	}
-
-	public function ajax_get_custom_fields() {
-		extract($_POST);
-
-		$args=array(
-			'posts_per_page' => -1,
-			'category' => $category_id,
-			'fields' => 'ids'
-		);
-		$posts=get_posts($args);
-		$custom_fields=array();
-		$html=null;
-		$counter=0;
-
-		// get custom fields per post and put them in array //
-		foreach ($posts as $post_id) :
-			$custom_field_keys=get_post_custom_keys($post_id);
-			foreach ($custom_field_keys as $key) :
-				$custom_fields[]=$key;
-			endforeach;
-		endforeach;
-
-		$custom_fields=array_unique($custom_fields); // remove duplicates
-		$custom_fields=array_values($custom_fields); // reset keys
-
-		foreach ($custom_fields as $custom_field) :
-			$html.='<input type="text" class="custom-field-value" name="fields_match['.$counter.'][custom_field]" value="'.$custom_field.'" readonly="readonly" /><br />';
-			$counter++;
-		endforeach;
-
-		echo $html;
-
-		wp_die();
-	}
-
-	public function ajax_get_meta_boxes() {
-		global $wp_meta_boxes;
-
-		$html=null;
-		$metabox_fields=array();
-
-		extract($_POST);
-
-		// there are multiple levels of metaboxes, so we need to cycle through them all and pull out the fields //
-		foreach ($wp_meta_boxes[$post_type] as $position) :
-			foreach ($position as $priority) :
-				foreach ($priority as $metabox) :
-					foreach ($metabox['callback'] as $field) :
-						$metabox_fields[]=$field;
-					endforeach;
-				endforeach;
-			endforeach;
-		endforeach;
-
-		// turn our fields into options //
-		$html.='<select id="metabox-fields-box" name="fields_match">';
-			$html.='<option value="0">Select Metabox Field</option>';
-			foreach ($metabox_fields as $metabox_field) :
-				$html.='<option value="'.$metabox_field.'">'.$metabox_field.'</option>';
-			endforeach;
-		$html.='</select>';
-
-		echo $html;
-
-		wp_die();
 	}
 
 }

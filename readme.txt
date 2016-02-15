@@ -34,6 +34,10 @@ Coming soon...
 
 == Changelog ==
 
+= 0.1.4 =
+
+* Stabilized for WordPress repo submission and release.
+
 = 0.1.3 =
 
 * Added a Match Custom Fields function (custom fields to metabox).
