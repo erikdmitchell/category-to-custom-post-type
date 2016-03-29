@@ -149,6 +149,14 @@ class Cat2PostType {
 						</tr>
 
 						<tr>
+							<th scope="row"><label for="move_children">Move Children</label></th>
+							<td>
+								<label title="yes"><input type="radio" name="move_children" value="y" />Yes</label><br />
+								<label title="no"><input type="radio" name="move_children" value="n" checked="checked" />No</label>
+							</td>
+						</tr>
+
+						<tr>
 							<th scope="row"><label for="delete_old">Delete Category</label></th>
 							<td>
 								<label title="yes"><input type="radio" name="delete_old" value="1" />Yes</label><br />
