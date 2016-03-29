@@ -115,6 +115,18 @@ class Cat2PostType {
 						</tr>
 
 						<tr>
+							<th scope="row"><label for="tax">Custom Taxonomy</label></th>
+							<td>
+								<select name="tax" id="tax" class="postform">
+									<option value="0">Select Taxonomy</option>
+									<?php foreach ($tax as $t) : ?>
+										<option value="<?php echo $t; ?>"><?php echo $t; ?></option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+						</tr>
+
+						<tr>
 							<th scope="row"><label for="delete_old">Delete Category</label></th>
 							<td>
 								<label title="yes"><input type="radio" name="delete_old" value="1" />Yes</label><br />
