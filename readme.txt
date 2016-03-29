@@ -34,6 +34,8 @@ Coming soon...
 
 == Changelog ==
 
+= 0.1.5 =
+
 = 0.1.4 =
 
 * Stabilized for WordPress repo submission and release.
