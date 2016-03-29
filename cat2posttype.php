@@ -12,6 +12,8 @@ Text Domain: ctpt
 
 class Cat2PostType {
 
+	public $version='0.1.5';
+
 	/**
 	 * __construct function.
 	 *
@@ -20,6 +22,23 @@ class Cat2PostType {
 	 */
 	public function __construct() {
 		add_action('admin_menu',array($this,'menu_page'));
+		add_action('admin_enqueue_scripts', array($this, 'admin_scripts_styles'));
+	}
+
+	/**
+	 * admin_scripts_styles function.
+	 *
+	 * @access public
+	 * @param mixed $hook
+	 * @return void
+	 */
+	public function admin_scripts_styles($hook) {
+		if ($hook!='tools_page_cat2posttype')
+			return false;
+
+		wp_enqueue_script('ctpt-admin-cats-script',plugins_url('js/cats.js',__File__), array('jquery'),	$this->version);
+
+		wp_enqueue_style('ctpt-admin-style',plugins_url('css/style.css', __FILE__));
 	}
 
 	/**
