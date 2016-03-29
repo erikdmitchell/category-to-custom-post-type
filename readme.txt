@@ -4,7 +4,7 @@ Donate link: erikdmitchell@gmail.com
 Tags: category, custom post type, post
 Requires at least: 4.0
 Tested up to: 4.4.2
-Stable tag: 4.4.2
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,7 +16,7 @@ Allows you to move categories to custom post types and/or taxonomies.
 
 == Installation ==
 
-1. Upload `cat2posttype` to the `/wp-content/plugins/` directory
+1. Upload `category-to-custom-post-type` to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to Tools > Cat 2 Post Type
 
