@@ -254,7 +254,12 @@ class Cat2PostType {
 		// update term taxonomies //
 		$this->update_term_taxonomies();
 
+		// update our message //
 		$messages['updated'][]='Category moved. '.$posts_count.' posts were created in '.$custom_post_type.'.';
+
+		// update child taxonomies //
+		if ($move_children)
+			$this->update_child_taxonomies($cat, $custom_post_type, $tax, $delete_old);
 
 		// delete category //
 		if ($delete_old) :
@@ -311,6 +316,50 @@ class Cat2PostType {
 			'term_taxonomy_id' => $new_term_taxonomy_id->term_taxonomy_id
 		);
 		$update_tax=$wpdb->update($wpdb->term_relationships, $new_term_taxonomy_id_arr, array('term_taxonomy_id' => $term_taxonomy_details->term_taxonomy_id));
+
+		return true;
+	}
+
+	/**
+	 * update_child_taxonomies function.
+	 *
+	 * @access protected
+	 * @param int $cat (default: 0)
+	 * @param string $custom_post_type (default: 'post')
+	 * @param string $tax (default: '')
+	 * @param int $delete_old (default: 0)
+	 * @return void
+	 */
+	protected function update_child_taxonomies($cat=0, $custom_post_type='post', $tax='', $delete_old=0) {
+		global $wpdb;
+
+		if (!$cat)
+			return false;
+
+		$child_args=array(
+			'child_of' => $cat,
+			'hide_empty' => false,
+		);
+		$categories=get_categories($child_args);
+
+		foreach ($categories as $cat) :
+			$new_sub_cat=array(
+				'cat_name' => $cat->name,
+				'category_description' => $cat->description,
+				'category_nicename' => $custom_post_type.'-'.$cat->slug, // MIGHT WANT TO MAKE PARENT //
+				'category_parent' => $new_cat_id,
+				'taxonomy' => $tax,
+			);
+			$new_sub_cat_id = wp_insert_category($new_sub_cat);
+
+			// update term taxonomies //
+			$this->update_term_taxonomies($cat, $new_sub_cat_id);
+
+			// delete old category //
+			if ($delete_old)
+				wp_delete_category($cat->cat_ID);
+
+		endforeach;
 	}
 
 }
