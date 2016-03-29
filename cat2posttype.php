@@ -151,8 +151,8 @@ class Cat2PostType {
 						<tr>
 							<th scope="row"><label for="move_children">Move Children</label></th>
 							<td>
-								<label title="yes"><input type="radio" name="move_children" value="y" />Yes</label><br />
-								<label title="no"><input type="radio" name="move_children" value="n" checked="checked" />No</label>
+								<label title="yes"><input type="radio" name="move_children" value="1" />Yes</label><br />
+								<label title="no"><input type="radio" name="move_children" value="0" checked="checked" />No</label>
 							</td>
 						</tr>
 
@@ -212,6 +212,19 @@ class Cat2PostType {
 
 		$main_cat=get_term_by('id',$cat,'category'); // get primary category id
 
+		// check our new category (parent), then set our array and new cat id //
+		if ($new_cat!=-1)
+			$parent=$new_cat;
+
+		$new_cat=array(
+			'cat_name' => $main_cat->name,
+			'category_description' => $main_cat->description,
+			'category_nicename' => $custom_post_type."-".$main_cat->slug,
+			'category_parent' => $parent,
+			'taxonomy' => $tax,
+		);
+		$new_cat_id = wp_insert_category($new_cat);
+
 		// update posts to custom post type //
 		$args=array(
 			'posts_per_page' => -1,
@@ -237,6 +250,9 @@ class Cat2PostType {
 		endforeach;
 
 		do_action('c2p_after_posts_moved',$posts);
+
+		// update term taxonomies //
+		$this->update_term_taxonomies();
 
 		$messages['updated'][]='Category moved. '.$posts_count.' posts were created in '.$custom_post_type.'.';
 
@@ -267,6 +283,34 @@ class Cat2PostType {
 				endforeach;
 			endif;
 		endforeach;
+	}
+
+	/**
+	 * update_term_taxonomies function.
+	 *
+	 * @access protected
+	 * @param int $cat (default: 0)
+	 * @param int $new_cat_id (default: 0)
+	 * @return void
+	 */
+	protected function update_term_taxonomies($cat=0, $new_cat_id=0) {
+		global $wpdb;
+
+		if (!$cat)
+			return false;
+
+		$term_taxonomy_details=$wpdb->get_row("SELECT term_taxonomy_id,count FROM {$wpdb->term_taxonomy} WHERE term_id={$cat}");
+		$new_term_taxonomy_id=$wpdb->get_row("SELECT term_taxonomy_id FROM {$wpdb->term_taxonomy} WHERE term_id={$new_cat_id}");
+
+		$term_taxonomy_details_count_arr=array(
+			'count' => $term_taxonomy_details->count
+		);
+		$update_count=$wpdb->update($wpdb->term_taxonomy, $term_taxonomy_details_count_arr, array('term_id' => $new_cat_id));
+
+		$new_term_taxonomy_id_arr=array(
+			'term_taxonomy_id' => $new_term_taxonomy_id->term_taxonomy_id
+		);
+		$update_tax=$wpdb->update($wpdb->term_relationships, $new_term_taxonomy_id_arr, array('term_taxonomy_id' => $term_taxonomy_details->term_taxonomy_id));
 	}
 
 }
