@@ -127,6 +127,28 @@ class Cat2PostType {
 						</tr>
 
 						<tr>
+							<th scope="row"><label for="new_cat">New Category Parent</label></th>
+							<td>
+								<?php
+								// create various dropdowns for each taxonomy, jQuery will handle the displaying of each //
+								foreach ($tax as $t) :
+									$wp_new_dd_args=array(
+										'name' => 'new_cat',
+										'hide_empty' => 0,
+										'hierarchical' => 1,
+										'taxonomy' => $t,
+										'show_option_none'=>'Select Category',
+									);
+									?>
+									<div id="<?php echo $t; ?>" class="new-cat-dd" style="display:none">
+										<?php wp_dropdown_categories($wp_new_dd_args); ?>
+										<span class="description">(optional)</span>
+									</div>
+								<?php	endforeach;	?>
+							</td>
+						</tr>
+
+						<tr>
 							<th scope="row"><label for="delete_old">Delete Category</label></th>
 							<td>
 								<label title="yes"><input type="radio" name="delete_old" value="1" />Yes</label><br />
