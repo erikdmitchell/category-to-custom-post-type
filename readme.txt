@@ -36,6 +36,9 @@ Coming soon...
 
 = 0.1.5 =
 
+* Added support to move categories and/or their children.
+* Added support for taxonomies and to move posts between them.
+
 = 0.1.4 =
 
 * Stabilized for WordPress repo submission and release.
