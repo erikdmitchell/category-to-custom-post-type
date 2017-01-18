@@ -3,7 +3,7 @@
 Plugin Name: Category to Custom Post Type
 Plugin URI:
 Description: Allows you to move categories to custom post types.
-Version: 0.1.5
+Version: 0.1.6
 Author: Erik Mitchell
 Author URI: http://www.millerdesignworks.com
 License: GPL2
